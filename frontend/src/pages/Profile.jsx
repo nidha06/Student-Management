@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../features/auth/authSlice';
+
 
 const Profile = () => {
   const [student, setStudent] = useState(null);
@@ -10,16 +13,19 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState(null);
 
+  const dispatch = useDispatch();
+
   const navigate = useNavigate(); 
 
-  const handleLogout = () => {
-    // Clear both possible token keys
-    localStorage.removeItem('studentToken');
-    localStorage.removeItem('token');
-    navigate('/');
-  };
+const handleLogout = () => {
+  dispatch(logout());
 
- // In your useEffect, change this part:
+  localStorage.removeItem("studentToken");
+  localStorage.removeItem("token");
+
+  navigate("/login", { replace: true });
+  };
+  
 
 useEffect(() => {
   const fetchProfile = async () => {

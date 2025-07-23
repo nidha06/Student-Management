@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // For images
 
-//  DB CONNECTION + ROUTES TOGETHER
+//  DB CONNECTION + ROUTES TOGETHER 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {

@@ -59,6 +59,11 @@ const Register = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setProfilePic(file);
+
+     setFormData((prev) => ({
+       ...prev,
+       profilePic: file,
+     }));
     
     if (file) {
       const reader = new FileReader();
@@ -75,41 +80,42 @@ const Register = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   if (!validate()) return;
-  
+
   setLoading(true);
-  setError('');
+  setError("");
 
   try {
-    // Replace with your actual API endpoint
-    console.log(formData, 'formData');
-    const response = await fetch('/api/student/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData), // Include form data and profile pic
+    const form = new FormData();
+    form.append("name", formData.name);
+    form.append("age", formData.age);
+    form.append("class", formData.class);
+    form.append("admissionNumber", formData.admissionNumber);
+    form.append("email", formData.email);
+    form.append("password", formData.password);
+    form.append("profilePic", formData.profilePic); // 🧠 Important
+
+    const response = await fetch("/api/student/register", {
+      method: "POST",
+      body: form, // ❌ No headers, let browser set it (important)
     });
 
     if (response.ok) {
       const data = await response.json();
-      
-      // Store the token (adjust based on your API response structure)
-      localStorage.setItem('token', data.token);
-      // or sessionStorage.setItem('token', data.token);
-      
-      navigate('/profile');
+      localStorage.setItem("token", data.token);
+      navigate("/profile");
     } else {
-      setError('Registration failed');
+      setError("Registration failed");
     }
   } catch (error) {
-    setError('Registration failed: ' + error.message);
+    setError("Registration failed: " + error.message);
   } finally {
     setLoading(false);
   }
 };
+
 
   const inputStyle = (hasError) => ({
     padding: '12px',
@@ -245,6 +251,7 @@ const Register = () => {
               <input
                 type="file"
                 accept="image/*"
+                name='profilePic'
                 onChange={handleFileChange}
                 style={{
                   ...inputStyle(errors.profilePic),

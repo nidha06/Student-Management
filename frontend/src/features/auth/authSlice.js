@@ -1,12 +1,15 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 export const loginUser = createAsyncThunk(
-  'auth/loginUser',
+  "auth/loginUser",
   async (credentials, thunkAPI) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/student/login', credentials);
-      console.log('Login API response:', response.data);
+      const response = await axios.post(
+        "http://localhost:5000/api/student/login",
+        credentials
+      );
+      console.log("Login API response:", response.data);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.message);
@@ -14,21 +17,27 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-const tokenFromStorage = localStorage.getItem('studentToken');
+const initialState = {
+  user: null,
+  token: null,
+  loading: false,
+  error: null,
+};
 
 const authSlice = createSlice({
-  name: 'auth',
-  initialState: {
-    user: null,
-    token: tokenFromStorage || null,
-    loading: false,
-    error: null,
-  },
+  name: "auth",
+  initialState,
   reducers: {
     logout: (state) => {
+      // Clear Redux state
       state.user = null;
       state.token = null;
-      localStorage.removeItem('studentToken');
+      state.loading = false;
+      state.error = null;
+
+      // Clear localStorage
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     },
   },
   extraReducers: (builder) => {
@@ -42,8 +51,11 @@ const authSlice = createSlice({
         // Change this line: use action.payload.student instead of action.payload.user
         state.user = action.payload.student;
         state.token = action.payload.token;
-        localStorage.setItem('studentToken', action.payload.token);
-        console.log('✅ Auth state updated:', { user: state.user, token: state.token });
+        localStorage.setItem("studentToken", action.payload.token);
+        console.log("✅ Auth state updated:", {
+          user: state.user,
+          token: state.token,
+        });
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
