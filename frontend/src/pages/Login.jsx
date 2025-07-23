@@ -1,39 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom'; 
+import { Link } from 'react-router-dom';
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
-
+  const { loading, error, user, token } = useSelector((state) => state.auth);
+  
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+
+  // Watch for successful authentication
+  useEffect(() => {
+    if (user && token) {
+      console.log('✅ User authenticated, navigating to profile...');
+      navigate('/profile', { replace: true });
+    }
+  }, [user, token, navigate]);
+
+  const validate = () => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!formData.email) newErrors.email = 'Email required';
+    else if (!emailRegex.test(formData.email)) newErrors.email = 'Invalid email';
+    
+    if (!formData.password) newErrors.password = 'Password required';
+    else if (formData.password.length < 6) newErrors.password = 'Min 6 characters';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(loginUser(formData));
-    if (result.meta.requestStatus === 'fulfilled') {
-      navigate('/profile'); // or /admin based on role
+    if (validate()) {
+      console.log('🚀 Dispatching login action...');
+      dispatch(loginUser(formData));
     }
   };
 
-  // return (
-  //   <form onSubmit={handleSubmit}>
-  //     <h2>Login</h2>
-  //     <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-  //     <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-  //     <button type="submit" disabled={loading}>
-  //       {loading ? 'Logging in...' : 'Login'}
-  //     </button>
-  //     {error && <p style={{ color: 'red' }}>{error}</p>}
-  //   </form>
-  // );
+  const inputStyle = (hasError) => ({
+    padding: '12px',
+    width: '100%',
+    fontSize: '16px',
+    borderRadius: '6px',
+    border: `2px solid ${hasError ? '#ef4444' : '#d1d5db'}`,
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    boxSizing: 'border-box',
+  });
 
   return (
     <div style={{
@@ -41,78 +66,99 @@ const Login = () => {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
-      backgroundColor: '#f0f4f8',
-      padding: '16px',
+      background: '#ffffff',
+      padding: '20px',
     }}>
       <form onSubmit={handleSubmit} style={{
-        backgroundColor: 'white',
-        padding: '32px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        background: '#000000',
+        padding: '40px',
+        borderRadius: '12px',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
         width: '100%',
         maxWidth: '400px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: '20px',
       }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '8px' }}>Login</h2>
+        <h2 style={{ textAlign: 'center', margin: '0 0 10px', color: '#ffffff' }}>
+          Welcome Back
+        </h2>
+        
+        <div>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            style={inputStyle(errors.email)}
+            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+            onBlur={(e) => e.target.style.borderColor = errors.email ? '#ef4444' : '#d1d5db'}
+          />
+          {errors.email && <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '5px' }}>
+            {errors.email}
+          </div>}
+        </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          onChange={handleChange}
-          required
-          style={{
-            padding: '10px',
-            fontSize: '16px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-          }}
-        />
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
-          style={{
-            padding: '10px',
-            fontSize: '16px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-          }}
-        />
+        <div>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            style={inputStyle(errors.password)}
+            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+            onBlur={(e) => e.target.style.borderColor = errors.password ? '#ef4444' : '#d1d5db'}
+          />
+          {errors.password && <div style={{ color: '#ef4444', fontSize: '14px', marginTop: '5px' }}>
+            {errors.password}
+          </div>}
+        </div>
 
         <button
           type="submit"
           disabled={loading}
           style={{
-            padding: '10px',
-            backgroundColor: loading ? '#86efac' : '#22c55e', // lighter green when loading
-            color: 'white',
+            padding: '12px',
+            background: loading ? '#9ca3af' : '#ffffff',
+            color: '#000000',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: '6px',
             fontSize: '16px',
+            fontWeight: '600',
             cursor: loading ? 'not-allowed' : 'pointer',
+            transition: 'background 0.2s',
+          }}
+          onMouseOver={(e) => {
+            if (!loading) e.target.style.background = '#f3f4f6';
+          }}
+          onMouseOut={(e) => {
+            if (!loading) e.target.style.background = '#ffffff';
           }}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
         {error && (
-          <p style={{ color: 'red', textAlign: 'center', marginTop: '8px' }}>
+          <div style={{ 
+            color: '#ef4444', 
+            textAlign: 'center', 
+            fontSize: '14px',
+            padding: '10px',
+            background: '#fee2e2',
+            borderRadius: '6px'
+          }}>
             {error}
-          </p>
+          </div>
         )}
 
-<p style={{ textAlign: 'center', marginTop: '8px', fontSize: '14px' }}>
-        Don't have an account?{' '}
-        <Link to="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 'bold' }}>
-          Register
-        </Link>
-      </p>
+        <p style={{ textAlign: 'center', margin: '10px 0 0', fontSize: '14px', color: '#6b7280' }}>
+          Don't have an account?{' '}
+          <Link to="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>
+            Sign up
+          </Link>
+        </p>
       </form>
     </div>
   );

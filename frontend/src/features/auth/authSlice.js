@@ -39,9 +39,11 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
+        // Change this line: use action.payload.student instead of action.payload.user
+        state.user = action.payload.student;
         state.token = action.payload.token;
         localStorage.setItem('studentToken', action.payload.token);
+        console.log('✅ Auth state updated:', { user: state.user, token: state.token });
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

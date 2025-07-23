@@ -12,11 +12,13 @@ const adding = useReducer(()=>{
 
 
     return(
+        <>
         <input type="text"  value={item}/>
         <button onClick={adding}>create</button>
 
         {items.map((item,i)=>(
             <p key ={i}>{item}</p>
         ))}
+        </>
     )
 }

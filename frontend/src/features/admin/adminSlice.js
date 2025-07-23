@@ -3,7 +3,7 @@ import axios from 'axios';
 
 //const token = localStorage.getItem('adminToken');
 
-// Login Admin
+
 export const loginAdmin = createAsyncThunk('admin/login', async (credentials, thunkAPI) => {
   try {
     const { data } = await axios.post('http://localhost:5000/api/admin/login', credentials);
